@@ -148,17 +148,17 @@ logger:
   baud_rate: 0
 
 ##### ENABLE RINGTONE MUSIC SUPPORT #####
-#rtttl:
-#  id: buzzer
-#  output: buzzer_out
+rtttl:
+  id: buzzer
+  output: buzzer_out
 
 ##### CONFIGURE INTERNAL BUZZER #####
-#output:
+output:
   ##### BUZZER FOR PLAYING RINGTONES #####
-#  - id: buzzer_out
-#    platform: ledc
-#    pin:
-#      number: 21
+  - id: buzzer_out
+    platform: ledc
+    pin:
+      number: 25
 
 ##### UART FOR NEXTION DISPLAY #####
 uart:
