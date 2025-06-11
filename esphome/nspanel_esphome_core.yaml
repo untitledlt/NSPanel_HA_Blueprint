@@ -153,12 +153,12 @@ rtttl:
   output: buzzer_out
 
 ##### CONFIGURE INTERNAL BUZZER #####
-output:
+#output:
   ##### BUZZER FOR PLAYING RINGTONES #####
-  - id: buzzer_out
-    platform: ledc
-    pin:
-      number: 21
+#  - id: buzzer_out
+#    platform: ledc
+#    pin:
+#      number: 21
 
 ##### UART FOR NEXTION DISPLAY #####
 uart:
