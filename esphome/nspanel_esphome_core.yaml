@@ -148,9 +148,9 @@ logger:
   baud_rate: 0
 
 ##### ENABLE RINGTONE MUSIC SUPPORT #####
-rtttl:
-  id: buzzer
-  output: buzzer_out
+#rtttl:
+#  id: buzzer
+#  output: buzzer_out
 
 ##### CONFIGURE INTERNAL BUZZER #####
 #output:
