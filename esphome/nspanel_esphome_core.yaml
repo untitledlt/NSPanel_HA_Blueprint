@@ -3001,14 +3001,14 @@ script:
             {
               HomeassistantServiceResponse resp;
               HomeassistantServiceMap resp_kv;
-              resp.service = service.c_str();
-              resp_kv.key = "entity_id";
-              resp_kv.value = entity.c_str();
+              resp.set_service(service.c_str());
+              resp_kv.set_key("entity_id");
+              resp_kv.set_value(entity.c_str());
               resp.data.push_back(resp_kv);
               if (not pin.empty())
                 {
-                  resp_kv.key = "code";
-                  resp_kv.value = pin.c_str();
+                  resp_kv.set_key("code");
+                  resp_kv.set_value(pin.c_str());
                   resp.data.push_back(resp_kv);
                 }
               api_server->send_homeassistant_service_call(resp);
