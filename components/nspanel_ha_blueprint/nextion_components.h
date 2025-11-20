@@ -8,10 +8,22 @@
 
 namespace nspanel_ha_blueprint {
 
+    /**
+    * @struct HMIComponent
+    * @brief Associates an HMI component name with its ID.
+    *
+    * This structure pairs a component name (up to 14 characters) with
+    * a corresponding ID (0-255) for Nextion display communication.
+    * Designed for compile-time constant definitions with minimal memory usage.
+    */
+    struct HMIComponent {
+        const char* name;  ///< Component name (max 14 chars)
+        uint8_t id;        ///< Component ID (0-255)
+    };
+
     struct NextionComponent {
         char page[15];         // 14 characters + null terminator, representing the Nextion display page
         char component_id[15]; // 14 characters + null terminator, representing the component ID within the page
-        bool is_current_page;  // Flag indicating whether the component is on the current page
     };
 
     /**

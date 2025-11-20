@@ -8,87 +8,40 @@
 #####################################################################################################
 ---
 substitutions:
-  ### Local cover defaults ###
+  ##############################
+  ## Change only in your      ##
+  ## local yaml substitutions ##
+  ##############################
+  ### Local cover defaults   ###
   interlock_wait_time: '250'
+  TAG_ADDON_COVER: nspanel.addon.cover
 
 esphome:
   platformio_options:
     build_flags:
       - -D NSPANEL_HA_BLUEPRINT_ADDON_COVER
-  on_boot:
-    - priority: 700.29
-      then:
-        - wait_until:
-            condition:
-              - lambda: return cover_interlock_wait_time->has_state();
-              - lambda: return !isnan(cover_interlock_wait_time->state);
-        - lambda: |-
-            boot_log->execute("Cover on_boot", "Set relay interlock");
-            relay_1->set_interlock_wait_time(cover_interlock_wait_time->state);
-            relay_2->set_interlock_wait_time(cover_interlock_wait_time->state);
-    - priority: 700.27
-      then:
-        - wait_until:
-            condition:
-              - lambda: return cover_open_duration->has_state();
-              - lambda: return !isnan(cover_open_duration->state);
-        - lambda: |-
-            boot_log->execute("Cover on_boot", "Set open duration");
-            cover_embedded->set_open_duration(cover_open_duration->state);
-    - priority: 700.26
-      then:
-        - wait_until:
-            condition:
-              - lambda: return cover_close_duration->has_state();
-              - lambda: return !isnan(cover_close_duration->state);
-        - lambda: |-
-            boot_log->execute("Cover on_boot", "Set close duration");
-            cover_embedded->set_close_duration(cover_close_duration->state);
-    - priority: 700.24
-      then:
-        - wait_until:
-            condition:
-              - lambda: return cover_acceleration_wait_time->has_state();
-              - lambda: return !isnan(cover_acceleration_wait_time->state);
-        - lambda: |-
-            boot_log->execute("Cover on_boot", "Set acc. wait time");
-            cover_embedded->set_acceleration_wait_time(cover_acceleration_wait_time->state);
-    - priority: 700.23
-      then:
-        - wait_until:
-            condition:
-              - lambda: return cover_direction_change_wait_time->has_state();
-              - lambda: return !isnan(cover_direction_change_wait_time->state);
-        - lambda: |-
-            boot_log->execute("Cover on_boot", "Set dir. change wait time");
-            cover_embedded->set_direction_change_waittime(cover_direction_change_wait_time->state);
-    - priority: 700.21
-      then:
-        - wait_until:
-            condition:
-              - lambda: return cover_device_class->has_state();
-              - lambda: return !(cover_device_class->state).empty();
-        - lambda: |-
-            boot_log->execute("Cover on_boot", "Set device class");
-            std::string lower_x = cover_device_class->state;
-            std::transform(lower_x.begin(), lower_x.end(), lower_x.begin(), ::tolower);
-            cover_embedded->set_device_class(lower_x.c_str());
 
 cover:
   - id: cover_embedded
     name: Cover
     platform: feedback
     open_action:
-      - switch.turn_on: cover_open_virtual_relay
+      then:
+        - lambda: |-
+            cover_open_virtual_relay->turn_on();
     open_duration: 1ms
     close_action:
-      - switch.turn_on: cover_close_virtual_relay
+      then:
+        - lambda: |-
+            cover_close_virtual_relay->turn_on();
     close_duration: 1ms
     stop_action:
-      - switch.turn_off: cover_open_virtual_relay
-      - switch.turn_off: cover_close_virtual_relay
-      - switch.turn_off: relay_1
-      - switch.turn_off: relay_2
+      then:
+        - lambda: |-
+            cover_open_virtual_relay->turn_off();
+            cover_close_virtual_relay->turn_off();
+            relay_1->turn_off();
+            relay_2->turn_off();
 
 number:
   - id: cover_acceleration_wait_time
@@ -104,10 +57,15 @@ number:
     initial_value: 0
     optimistic: true
     restore_value: true
+    update_interval: never
     on_value:
-      - lambda: if (!isnan(x)) cover_embedded->set_acceleration_wait_time(x);
-      - delay: 10s
-      - lambda: cover_embedded->dump_config();
+      then:
+        - lambda: |-
+            if (isnan(x)) return;
+            boot_log->execute("Cover", "Set acc. wait time");
+            cover_embedded->set_acceleration_wait_time(x);
+            dump_config_cover->execute();
+
   - id: cover_direction_change_wait_time
     name: Cover direction change wait time
     icon: mdi:timer
@@ -122,9 +80,13 @@ number:
     optimistic: true
     restore_value: true
     on_value:
-      - lambda: if (!isnan(x)) cover_embedded->set_direction_change_waittime(x);
-      - delay: 10s
-      - lambda: cover_embedded->dump_config();
+      then:
+        - lambda: |-
+            if (isnan(x)) return;
+            boot_log->execute("Cover", "Set dir. change wait time");
+            cover_embedded->set_direction_change_waittime(x);
+            dump_config_cover->execute();
+
   - id: cover_interlock_wait_time
     name: Cover interlock wait time
     icon: mdi:timer
@@ -139,15 +101,14 @@ number:
     optimistic: true
     restore_value: true
     on_value:
-      - lambda: |-
-          if (!isnan(x)) {
+      then:
+        - lambda: |-
+            if (isnan(x)) return;
+            boot_log->execute("Cover", "Set relay interlock time");
             relay_1->set_interlock_wait_time(x);
             relay_2->set_interlock_wait_time(x);
-          }
-      - delay: 10s
-      - lambda: |-
-          relay_1->dump_config();
-          relay_2->dump_config();
+            dump_config_cover->execute();
+
   - id: cover_open_duration
     name: Cover open duration
     icon: mdi:timer
@@ -162,9 +123,13 @@ number:
     optimistic: true
     restore_value: true
     on_value:
-      - lambda: if (!isnan(x)) cover_embedded->set_open_duration(x);
-      - delay: 10s
-      - lambda: cover_embedded->dump_config();
+      then:
+        - lambda: |-
+            if (isnan(x)) return;
+            boot_log->execute("Cover", "Set open duration");
+            cover_embedded->set_open_duration(x);
+            dump_config_cover->execute();
+
   - id: cover_close_duration
     name: Cover close duration
     icon: mdi:timer
@@ -179,9 +144,12 @@ number:
     optimistic: true
     restore_value: true
     on_value:
-      - lambda: if (!isnan(x)) cover_embedded->set_close_duration(x);
-      - delay: 10s
-      - lambda: cover_embedded->dump_config();
+      then:
+        - lambda: |-
+            if (isnan(x)) return;
+            boot_log->execute("Cover", "Set close duration");
+            cover_embedded->set_close_duration(x);
+            dump_config_cover->execute();
 
 script:
   - id: !extend dump_config
@@ -191,34 +159,71 @@ script:
           #ifdef NSPANEL_HA_BLUEPRINT_ADDON_CLIMATE_BASE
             #error "Configuration error: The add-on cover and add-on climate cannot be installed simultaneously."
           #endif
-          static const char *const TAG = "nspanel_ha_blueprint";
-          ESP_LOGCONFIG(TAG, "Add-on cover (time based):");
+          ESP_LOGCONFIG("${TAG_ADDON_COVER}", "Add-on cover (time based):");
           cover_embedded->dump_config();
 
+  - id: dump_config_cover
+    mode: restart
+    then:
+      - delay: 10s
+      - lambda: cover_embedded->dump_config();
+
+  - id: dump_config_relays
+    mode: restart
+    then:
+      - delay: 10s
+      - lambda: |-
+          relay_1->dump_config();
+          relay_2->dump_config();
+
   - id: set_physical_relays
-    mode: queued
+    mode: restart
     parameters:
-      open: bool
-      state: bool
+      opening: bool   # operation is opening (true) or closing (false)
+      state: bool  # true when turning the relay on, or false when turning the relay off
     then:
       - lambda: |-
+          ESP_LOGV("${TAG_ADDON_COVER}", "Add-on cover - Set physical relays:");
+          ESP_LOGV("${TAG_ADDON_COVER}", "  operation: %s", opening ? "opening" : "closing");
+          ESP_LOGV("${TAG_ADDON_COVER}", "  state: %s", TRUEFALSE(state));
           auto cover_relays_active_index = cover_relays_mode->active_index();
-          if (cover_relays_active_index.has_value()) {
-            const bool cover_mode_std = (cover_relays_active_index.value() == 0);
-            auto relay_open = (cover_mode_std) ? relay_1 : relay_2;
-            auto relay_close = (cover_mode_std) ? relay_2 : relay_1;
-
-            if (open) {
-              if (state) relay_open->turn_on();
-              else relay_open->turn_off();
-            } else {
-              if (state) relay_close->turn_on();
-              else relay_close->turn_off();
-            }
-          } else {
+          if (not cover_relays_active_index.has_value()) {
+            ESP_LOGW("${TAG_ADDON_COVER}", "Cover relays mode - No active index found");
             relay_1->turn_off();
             relay_2->turn_off();
+            return;
           }
+
+          ESP_LOGV("${TAG_ADDON_COVER}", "  active index: %i", cover_relays_active_index.value());
+          const bool cover_mode_std = (cover_relays_active_index.value() == 0);
+          ESP_LOGV("${TAG_ADDON_COVER}", "  standard mode: %s", YESNO(cover_mode_std));
+          auto relay_open = cover_mode_std ? relay_1 : relay_2;
+          auto relay_close = cover_mode_std ? relay_2 : relay_1;
+
+          if (opening) {
+            if (state) {
+              ESP_LOGV("${TAG_ADDON_COVER}", "Add-on cover - start opening");
+              relay_open->turn_on();
+            } else {
+              ESP_LOGV("${TAG_ADDON_COVER}", "Add-on cover - stop opening");
+              relay_open->turn_off();
+            }
+          } else {
+            if (state) {
+              ESP_LOGV("${TAG_ADDON_COVER}", "Add-on cover - start closing");
+              relay_close->turn_on();
+            } else {
+              ESP_LOGV("${TAG_ADDON_COVER}", "Add-on cover - stop closing");
+              relay_close->turn_off();
+            }
+          }
+
+  - id: !extend stop_all
+    then:
+      - lambda: |-
+          dump_config_cover->stop();
+          dump_config_relays->stop();
+          set_physical_relays->stop();
 
 select:
   - id: cover_device_class
@@ -242,15 +247,16 @@ select:
     entity_category: config
     disabled_by_default: false
     icon: mdi:window-shutter-cog
+    update_interval: never
     on_value:
-      - lambda: |-
-          if (!x.empty()) {
+      then:
+        - lambda: |-
+            if (x.empty()) return;
+            boot_log->execute("Cover", "Set device class");
             std::string lower_x = x;
             std::transform(lower_x.begin(), lower_x.end(), lower_x.begin(), ::tolower);
             cover_embedded->set_device_class(lower_x.c_str());
-          }
-      - delay: 10s
-      - lambda: cover_embedded->dump_config();
+            dump_config_cover->execute();
 
   - id: cover_relays_mode
     name: Cover relays mode
@@ -283,28 +289,25 @@ switch:
     restore_mode: ALWAYS_OFF
     optimistic: true
     on_turn_on:
-      - script.execute:
-          id: set_physical_relays
-          open: true
-          state: true
+      then:
+        - lambda: |-
+            set_physical_relays->execute(true, true);
     on_turn_off:
-      - script.execute:
-          id: set_physical_relays
-          open: true
-          state: false
+      then:
+        - lambda: |-
+            set_physical_relays->execute(true, false);
+
   - id: cover_close_virtual_relay
     platform: template
     internal: true
     restore_mode: ALWAYS_OFF
     optimistic: true
     on_turn_on:
-      - script.execute:
-          id: set_physical_relays
-          open: false
-          state: true
+      then:
+        - lambda: |-
+            set_physical_relays->execute(false, true);
     on_turn_off:
-      - script.execute:
-          id: set_physical_relays
-          open: false
-          state: false
+      then:
+        - lambda: |-
+            set_physical_relays->execute(false, false);
 ...

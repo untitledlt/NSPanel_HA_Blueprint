@@ -1,0 +1,13 @@
+---
+packages:
+  esphome_common: !include esphome_common.yaml
+
+esp32:
+  framework:
+    type: arduino
+
+psram: !remove
+
+wifi:
+  use_psram: !remove
+...
