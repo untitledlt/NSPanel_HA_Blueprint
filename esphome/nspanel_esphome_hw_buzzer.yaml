@@ -35,15 +35,15 @@ esphome:
     build_flags:
       - -D NSPANEL_HA_BLUEPRINT_HW_BUZZER
 
-output:
+#output:
   # Buzzer output
-  - id: buzzer_out
-    platform: ledc
-    pin: ${GPIO_BUZZER_OUTPUT_PIN}
+#  - id: buzzer_out
+#    platform: ledc
+#    pin: ${GPIO_BUZZER_OUTPUT_PIN}
 
-rtttl:  # ENABLE RINGTONE MUSIC SUPPORT
-  id: buzzer
-  output: buzzer_out
+#rtttl:  # ENABLE RINGTONE MUSIC SUPPORT
+#  id: buzzer
+#  output: buzzer_out
 
 script:
   - id: !extend wait_for_page_boot_exit
@@ -51,6 +51,6 @@ script:
       - lambda: |-
           if (${'false' if boot_sound else 'true'}) return;  // Boot sound is disabled
           if (current_page_id == ${PAGE_BOOT_ID}) return;    // Page boot is visible, do not play sound
-          boot_log->execute("Boot", "Play boot sound");
-          buzzer->play("${tone_boot}");
+          # boot_log->execute("Boot", "Play boot sound");
+          # buzzer->play("${tone_boot}");
 ...
